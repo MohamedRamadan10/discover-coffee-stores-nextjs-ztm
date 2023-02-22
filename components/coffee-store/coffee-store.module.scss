@@ -1,0 +1,53 @@
+.coffeeStoreDetails {
+	padding: 100px 0;
+	min-height: 100vh;
+	display: flex;
+	align-items: center;
+	.heading {
+		text-align: center;
+	}
+	.boxImg {
+		position: relative;
+		margin-top: 50px;
+		.img {
+			border-radius: 20px;
+			object-fit: cover;
+			aspect-ratio: 16/9;
+		}
+		.coffeeData {
+			background: rgba(0, 0, 0, 0.5);
+			border-radius: 15px;
+			padding: 15px;
+			box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+			backdrop-filter: blur(5px);
+			border: 1px solid rgba(255, 255, 255, 0.3);
+			position: absolute;
+			top: 10px;
+			left: 10px;
+			font-size: 20px;
+			width: 100%;
+			max-width: 450px;
+			& > div {
+				&:not(:last-child) {
+					margin-bottom: 15px;
+				}
+			}
+			.addressStyle,
+			.navigation {
+				display: flex;
+			}
+			svg {
+				margin-right: 10px;
+				margin-top: 2px;
+				flex: 0 0 24px;
+				max-width: 24px;
+				width: 24px;
+			}
+			.btn {
+				margin-top: 40px;
+				display: flex;
+				align-items: center;
+			}
+		}
+	}
+}

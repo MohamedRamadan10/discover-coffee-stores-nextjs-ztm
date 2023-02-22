@@ -1,0 +1,35 @@
+.banner {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  font-weight: bold;
+  position: relative;
+  overflow: hidden;
+  padding: 100px 0;
+  & > div {
+    position: relative;
+    z-index: 2;
+  }
+  .brief {
+    margin-top: 30px;
+    font-size: 20px;
+  }
+  .btn {
+    margin-top: 50px;
+  }
+  .img {
+    position: absolute;
+    top: -20px;
+    left: auto;
+    right: 0;
+    width: 50%;
+    text-align: right;
+    z-index: -1;
+    img {
+      padding-right: 30px;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+    }
+  }
+}
