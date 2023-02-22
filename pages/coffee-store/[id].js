@@ -21,12 +21,10 @@ import { StoreContext } from "../../context/store-context";
 
 export default function CoffeeStore(initialProps) {
 	const router = useRouter();
-
-	const id = router.query.id;
-
 	const [coffeeStore, setCoffeeStore] = useState(
 		initialProps.coffeeStore || {}
 	);
+	const id = router.query.id;
 
 	const {
 		state: { coffeeStores },
@@ -34,8 +32,8 @@ export default function CoffeeStore(initialProps) {
 
 	const handleCreateCoffeeStore = async (coffeeStore) => {
 		try {
-			const { id, name, vote, imgUrl, location, distance } = coffeeStore;
-			const response = await fetch("/api/createCoffeeStore", {
+			const { id, name, imgUrl, distance, location, vote } = coffeeStore;
+			const res = await fetch("/api/createCoffeeStore", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
@@ -43,36 +41,35 @@ export default function CoffeeStore(initialProps) {
 				body: JSON.stringify({
 					id,
 					name,
-					voting: 0,
-					vote,
 					imgUrl,
-					location: location || "",
-					distance: distance || "",
+					vote: vote || 0,
+					distance: `${distance}` || "",
+					location: `${location}` || "",
 				}),
 			});
-
-			const dbCoffeeStore = await response.json();
+			const dbCoffeeStore = await res.json();
 		} catch (err) {
-			console.error("Error creating coffee store", err);
+			console.log("Error handle create coffee", err);
 		}
 	};
 
 	useEffect(() => {
 		if (isEmpty(initialProps.coffeeStore)) {
 			if (coffeeStores.length > 0) {
-				const findCoffeeStoreById = coffeeStores.find((coffeeStore) => {
+				const coffeeStoreFromContext = coffeeStores.find((coffeeStore) => {
 					return coffeeStore.id.toString() === id;
 				});
-				setCoffeeStore(findCoffeeStoreById);
-				handleCreateCoffeeStore(findCoffeeStoreById);
+				setCoffeeStore(coffeeStoreFromContext);
+				handleCreateCoffeeStore(coffeeStoreFromContext);
 			}
 		} else {
 			handleCreateCoffeeStore(initialProps.coffeeStore);
 		}
-	}, [id, initialProps.coffeeStore, coffeeStores]);
+	}, [id, coffeeStores, initialProps.coffeeStore]);
 
-	const { name = "", distance = "", location = "", imgUrl = "" } = coffeeStore;
-	const [votingCount, setVotingCount] = useState(0);
+	const { name = "", imgUrl = "", distance = "", location = "" } = coffeeStore;
+
+	const [countVote, setCountVote] = useState(0);
 
 	const fetcher = (...args) => fetch(...args).then((res) => res.json());
 
@@ -81,17 +78,15 @@ export default function CoffeeStore(initialProps) {
 	useEffect(() => {
 		if (data && data.length > 0) {
 			setCoffeeStore(data[0]);
-			setVotingCount(data[0].voting);
+			setCountVote(data[0].vote);
 		}
 	}, [data]);
 
-	if (router.isFallback) {
-		return <div>Loading...</div>;
-	}
+	if (router.isFallback) return <div className="loading">Loading...</div>;
 
-	const handleUpvoteButton = async () => {
+	const handleUpVote = async () => {
 		try {
-			const response = await fetch(`/api/favoriteCoffeeStoreById?id=${id}`, {
+			const res = await fetch(`/api/favoriteCoffeeStoreById?id=${id}`, {
 				method: "PUT",
 				headers: {
 					"Content-Type": "application/json",
@@ -100,21 +95,18 @@ export default function CoffeeStore(initialProps) {
 					id,
 				}),
 			});
-
-			const dbCoffeeStore = await response.json();
-
+			const dbCoffeeStore = await res.json();
 			if (dbCoffeeStore && dbCoffeeStore.length > 0) {
-				let count = votingCount + 1;
-				setVotingCount(count);
+				let count = countVote + 1;
+				setCountVote(count);
 			}
 		} catch (err) {
-			console.error("Error up voting the coffee store", err);
+			console.log("Error up vote", err);
 		}
 	};
 
-	if (error) {
+	if (error)
 		return <div>Something went wrong retrieving coffee store page</div>;
-	}
 
 	return (
 		<>
@@ -156,9 +148,9 @@ export default function CoffeeStore(initialProps) {
 							<div className={navigation}>
 								<Navigation /> Postal code: {distance}
 							</div>
-							<button className={`${btn} btn`} onClick={handleUpvoteButton}>
+							<button className={`${btn} btn`} onClick={handleUpVote}>
 								<Star />
-								<span>Up Vote!! ({votingCount})</span>
+								<span>Up Vote!! ({countVote})</span>
 							</button>
 						</div>
 					</div>
