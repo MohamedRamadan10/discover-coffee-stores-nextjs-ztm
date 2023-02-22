@@ -21,17 +21,21 @@ import { StoreContext } from "../../context/store-context";
 
 export default function CoffeeStore(initialProps) {
 	const router = useRouter();
-	const [coffeeStore, setCoffeeStore] = useState(initialProps.coffeeStore);
+
 	const id = router.query.id;
+
+	const [coffeeStore, setCoffeeStore] = useState(
+		initialProps.coffeeStore || {}
+	);
 
 	const {
 		state: { coffeeStores },
 	} = useContext(StoreContext);
 
 	const handleCreateCoffeeStore = async (coffeeStore) => {
-		const { id, name, imgUrl, distance, location, vote } = coffeeStore;
 		try {
-			const res = await fetch("/api/createCoffeeStore", {
+			const { id, name, vote, imgUrl, location, distance } = coffeeStore;
+			const response = await fetch("/api/createCoffeeStore", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
@@ -39,37 +43,36 @@ export default function CoffeeStore(initialProps) {
 				body: JSON.stringify({
 					id,
 					name,
+					voting: 0,
+					vote,
 					imgUrl,
-					vote: vote || 0,
-					distance: `${distance}` || "",
-					location: `${location}` || "",
+					location: location || "",
+					distance: distance || "",
 				}),
 			});
-			const dbCoffeeStore = await res.json();
+
+			const dbCoffeeStore = await response.json();
 		} catch (err) {
-			console.log("Error handle create coffee", err);
+			console.error("Error creating coffee store", err);
 		}
 	};
 
 	useEffect(() => {
 		if (isEmpty(initialProps.coffeeStore)) {
 			if (coffeeStores.length > 0) {
-				const coffeeStoreFromContext = coffeeStores.find((coffeeStore) => {
+				const findCoffeeStoreById = coffeeStores.find((coffeeStore) => {
 					return coffeeStore.id.toString() === id;
 				});
-				if (coffeeStoreFromContext) {
-					setCoffeeStore(coffeeStoreFromContext);
-					handleCreateCoffeeStore(coffeeStoreFromContext);
-				}
+				setCoffeeStore(findCoffeeStoreById);
+				handleCreateCoffeeStore(findCoffeeStoreById);
 			}
 		} else {
 			handleCreateCoffeeStore(initialProps.coffeeStore);
 		}
-	}, [id, coffeeStores, initialProps.coffeeStore]);
+	}, [id, initialProps.coffeeStore, coffeeStores]);
 
-	const { name = "", imgUrl = "", distance = "", location = "" } = coffeeStore;
-
-	const [countVote, setCountVote] = useState(0);
+	const { name = "", distance = "", location = "", imgUrl = "" } = coffeeStore;
+	const [votingCount, setVotingCount] = useState(0);
 
 	const fetcher = (...args) => fetch(...args).then((res) => res.json());
 
@@ -78,15 +81,17 @@ export default function CoffeeStore(initialProps) {
 	useEffect(() => {
 		if (data && data.length > 0) {
 			setCoffeeStore(data[0]);
-			setCountVote(data[0].vote);
+			setVotingCount(data[0].voting);
 		}
 	}, [data]);
 
-	if (router.isFallback) return <div className="loading">Loading...</div>;
+	if (router.isFallback) {
+		return <div>Loading...</div>;
+	}
 
-	const handleUpVote = async () => {
+	const handleUpvoteButton = async () => {
 		try {
-			const res = await fetch(`/api/favoriteCoffeeStoreById?id=${id}`, {
+			const response = await fetch("/api/favoriteCoffeeStoreById", {
 				method: "PUT",
 				headers: {
 					"Content-Type": "application/json",
@@ -95,18 +100,21 @@ export default function CoffeeStore(initialProps) {
 					id,
 				}),
 			});
-			const dbCoffeeStore = await res.json();
+
+			const dbCoffeeStore = await response.json();
+
 			if (dbCoffeeStore && dbCoffeeStore.length > 0) {
-				let count = countVote + 1;
-				setCountVote(count);
+				let count = votingCount + 1;
+				setVotingCount(count);
 			}
 		} catch (err) {
-			console.log("Error up vote", err);
+			console.error("Error up voting the coffee store", err);
 		}
 	};
 
-	if (error)
+	if (error) {
 		return <div>Something went wrong retrieving coffee store page</div>;
+	}
 
 	return (
 		<>
@@ -148,9 +156,9 @@ export default function CoffeeStore(initialProps) {
 							<div className={navigation}>
 								<Navigation /> Postal code: {distance}
 							</div>
-							<button className={`${btn} btn`} onClick={handleUpVote}>
+							<button className={`${btn} btn`} onClick={handleUpvoteButton}>
 								<Star />
-								<span>Up Vote!! ({countVote})</span>
+								<span>Up Vote!! ({votingCount})</span>
 							</button>
 						</div>
 					</div>
@@ -183,6 +191,6 @@ export const getStaticPaths = async (ctx) => {
 
 	return {
 		paths,
-		fallback: false,
+		fallback: true,
 	};
 };
