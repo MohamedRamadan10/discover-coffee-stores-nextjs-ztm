@@ -2,7 +2,7 @@
  * @type {import('next').NextConfig}
  */
 const nextConfig = {
-	strictMode: false,
+	reactStrictMode: false,
 	env: {
 		API_AIRTABLE_KEY: "keyisCUd82F9lIdF8",
 		BASE_AIRTABLE_KEY: "appp7UhNGyoMF078V",
