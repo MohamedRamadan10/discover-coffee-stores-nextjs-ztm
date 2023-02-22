@@ -91,7 +91,7 @@ export default function CoffeeStore(initialProps) {
 
 	const handleUpvoteButton = async () => {
 		try {
-			const response = await fetch("/api/favoriteCoffeeStoreById", {
+			const response = await fetch(`/api/favoriteCoffeeStoreById?id=${id}`, {
 				method: "PUT",
 				headers: {
 					"Content-Type": "application/json",
